@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Manage users · Circuit House Register</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+<style>
+  .chm-users-table { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--ash); border-radius:10px; overflow:hidden; }
+  .chm-users-table th, .chm-users-table td { text-align:left; padding:10px 12px; font-size:13px; border-bottom:1px solid var(--ash); }
+  .chm-users-table th { font-size:11px; text-transform:uppercase; letter-spacing:0.08em; opacity:0.55; background:#EAEEEC; }
+  .chm-users-table tr:last-child td { border-bottom:none; }
+  .chm-badge { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; font-weight:600; }
+  .chm-badge-admin { background:rgba(13,59,62,0.1); color:var(--primary); }
+  .chm-badge-active { background:rgba(27,94,58,0.1); color:var(--emerald); }
+  .chm-badge-disabled { background:rgba(122,36,30,0.1); color:var(--error); }
+  .chm-inline-form { display:inline-flex; gap:6px; align-items:center; }
+  .chm-inline-form input { border:1px solid var(--ash); border-radius:6px; padding:5px 8px; font-size:12px; width:120px; }
+  .chm-inline-btn { border:1px solid var(--ash); background:#fff; border-radius:6px; padding:5px 9px; font-size:11px; cursor:pointer; }
+  .chm-inline-btn:hover { background:rgba(18,24,28,0.05); }
+  .chm-inline-btn-danger { color:var(--error); border-color:var(--error-border); }
+  .chm-flash { border-radius:8px; padding:10px 14px; font-size:13px; margin-bottom:14px; }
+  .chm-flash-success { background:rgba(27,94,58,0.1); color:var(--emerald); }
+  .chm-flash-error { background:var(--error-bg); color:var(--error); }
+  .chm-new-user-card { background:#fff; border:1px solid var(--ash); border-radius:10px; padding:18px; margin-bottom:22px; max-width:480px; }
+  .chm-new-user-card h3 { margin:0 0 14px; font-family:'Fraunces', serif; font-size:16px; }
+  .chm-checkbox-row { display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:14px; }
+</style>
+</head>
+<body>
+<div class="chm-root">
+
+  <div class="chm-header">
+    <div>
+      <div class="chm-title">Manage users</div>
+      <div class="chm-sub">Super-admin panel — create accounts &amp; reset passwords</div>
+    </div>
+    <a class="chm-btn-ghost" href="{{ url_for('index') }}">&larr; Back to register</a>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="chm-flash {{ 'chm-flash-error' if category == 'error' else 'chm-flash-success' }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="chm-new-user-card">
+    <h3>Create a new user</h3>
+    <form method="POST" action="{{ url_for('admin_create_user') }}">
+      <div class="chm-field" style="margin-bottom:12px;">
+        <span>Username</span>
+        <input name="username" required />
+      </div>
+      <div class="chm-field" style="margin-bottom:12px;">
+        <span>Password (min 6 characters)</span>
+        <input name="password" type="password" minlength="6" required />
+      </div>
+      <label class="chm-checkbox-row">
+        <input type="checkbox" name="is_admin" />
+        Give this user admin access (can manage other users)
+      </label>
+      <button class="chm-btn-primary" type="submit">Create user</button>
+    </form>
+  </div>
+
+  <table class="chm-users-table">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Role</th>
+        <th>Status</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td>{{ u["username"] }}{% if u["id"] == current_user.id %} <span style="opacity:0.5">(you)</span>{% endif %}</td>
+        <td>
+          {% if u["is_admin"] %}<span class="chm-badge chm-badge-admin">Admin</span>{% else %}<span style="opacity:0.6">User</span>{% endif %}
+        </td>
+        <td>
+          {% if u["is_active"] %}<span class="chm-badge chm-badge-active">Active</span>{% else %}<span class="chm-badge chm-badge-disabled">Disabled</span>{% endif %}
+        </td>
+        <td>{{ u["created_at"] }}</td>
+        <td>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+            <form class="chm-inline-form" method="POST" action="{{ url_for('admin_reset_password', user_id=u['id']) }}">
+              <input type="password" name="password" placeholder="New password" minlength="6" required />
+              <button class="chm-inline-btn" type="submit">Set password</button>
+            </form>
+
+            {% if u["id"] != current_user.id %}
+            <form method="POST" action="{{ url_for('admin_toggle_active', user_id=u['id']) }}">
+              <button class="chm-inline-btn" type="submit">{{ "Disable" if u["is_active"] else "Enable" }}</button>
+            </form>
+            <form method="POST" action="{{ url_for('admin_delete_user', user_id=u['id']) }}" onsubmit="return confirm('Delete user {{ u['username'] }}? This cannot be undone.');">
+              <button class="chm-inline-btn chm-inline-btn-danger" type="submit">Delete</button>
+            </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+</body>
+</html>

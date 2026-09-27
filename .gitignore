@@ -1,0 +1,5 @@
+circuit_house.db
+.secret_key
+__pycache__/
+venv/
+*.pyc

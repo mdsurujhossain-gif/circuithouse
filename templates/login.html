@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sign in · Circuit House Register</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+<style>
+  .chm-auth-wrap {
+    min-height: 100vh; display:flex; align-items:center; justify-content:center;
+    background: var(--paper); padding: 20px; box-sizing: border-box;
+  }
+  .chm-auth-card {
+    width: 100%; max-width: 380px; background: var(--sheet); border-radius: 14px;
+    padding: 32px 28px; box-shadow: 0 12px 40px rgba(0,0,0,0.12); box-sizing:border-box;
+  }
+  .chm-auth-title { font-family:'Fraunces', serif; font-size:22px; font-weight:600; display:flex; align-items:center; gap:10px; margin-bottom:4px; }
+  .chm-auth-sub { font-family:'IBM Plex Mono', monospace; font-size:12px; opacity:0.6; margin-bottom:24px; }
+  .chm-auth-field { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+  .chm-auth-field label { font-size:12px; opacity:0.65; }
+  .chm-auth-field input {
+    border:1px solid var(--ash); border-radius:8px; padding:11px 12px; font-size:14px;
+    color: var(--ink); background:#fff;
+  }
+  .chm-auth-submit {
+    width:100%; background: var(--primary); color:#fff; border:none; padding:12px;
+    border-radius:8px; font-weight:600; font-size:14px; cursor:pointer; margin-top:6px;
+  }
+  .chm-auth-submit:hover { background: var(--primary-dark); }
+  .chm-auth-error {
+    background: var(--error-bg); color: var(--error); border:1px solid var(--error-border);
+    border-radius:8px; padding:10px 12px; font-size:12px; margin-bottom:16px;
+  }
+</style>
+</head>
+<body>
+<div class="chm-root">
+  <div class="chm-auth-wrap">
+    <div class="chm-auth-card">
+      <div class="chm-auth-title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+        Circuit House Register
+      </div>
+      <div class="chm-auth-sub">Sign in with your assigned account</div>
+
+      {% if error %}
+        <div class="chm-auth-error">{{ error }}</div>
+      {% endif %}
+
+      <form method="POST" action="{{ url_for('login', next=request.args.get('next')) }}">
+        <div class="chm-auth-field">
+          <label for="username">Username</label>
+          <input id="username" name="username" autocomplete="username" autofocus required />
+        </div>
+        <div class="chm-auth-field">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required />
+        </div>
+        <button class="chm-auth-submit" type="submit">Sign in</button>
+      </form>
+    </div>
+  </div>
+</div>
+</body>
+</html>
